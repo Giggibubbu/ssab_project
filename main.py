@@ -33,3 +33,7 @@ if __name__ == '__main__':
             case default:
                 print("Carattere sbagliato")
                 x = False
+
+
+
+                prova
