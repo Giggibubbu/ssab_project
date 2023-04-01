@@ -1,0 +1,2 @@
+class OffchainManager:
+    var1 = ''
