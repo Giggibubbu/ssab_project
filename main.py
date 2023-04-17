@@ -1,9 +1,10 @@
 
 # Punto di partenza del programma
-
+import User
 
 if __name__ == '__main__':
     x = True
+    loggedUser = ''
 
     while(x):
 
@@ -15,10 +16,7 @@ if __name__ == '__main__':
         match choiche:
             case '1':
                 print("Inserisci la chiave pubblica e la chiave privata")
-                
-                #
-
-                
+                loggedUser = User()
                 #loginResult == 1 allora si deve ritornare a richiestadeploy e richiesta metodo (menu) 
                 #loginResult == 0 allora si f
                 # a tornare l'utente allo switch esterno
