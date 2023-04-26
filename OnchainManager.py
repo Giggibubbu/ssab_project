@@ -1,0 +1,5 @@
+
+class OnchainManager:
+    #verifica transazioni
+   
+   
