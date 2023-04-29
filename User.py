@@ -22,6 +22,25 @@ class User:
         isPrivateKeyValid = True
         _privateKey = privateKey
 
-
     
     #metodo register
+from web3 import Web3
+from eth_account import Account
+ganache_url= "http://127.0.0.1:7545"
+web3=Web3(Web3.HTTPProvider(ganache_url))
+class User:
+
+    # metodo login(chiave_pubblica, chiave_privata)
+    def login (self, public_key, private_key):                                      #eccezioni da gestire sulle lunghezze delle chaivi
+     PA=web3.eth.account.from_key(private_key)
+     Public_Address=PA.address
+     if(Public_Address==public_key):
+        return True
+     else: 
+         return False                                                                     
+
+ 
+
+    def register(self):
+     acc = web3.eth.account.create(); 
+     return(f'private key={web3.to_hex(acc._private_key)}, account={acc.address}')

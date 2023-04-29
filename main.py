@@ -2,9 +2,20 @@
 # Punto di partenza del programma
 import User
 
+
+
 if __name__ == '__main__':
+
+    
+
+
+
+
+
     x = True
     loggedUser = ''
+
+
 
     while(x):
 
@@ -23,6 +34,8 @@ if __name__ == '__main__':
                 loginResult = True
                 while(loginResult):
                     print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Effettua il logout\n")
+                    
+
 
                     loggedChoiche = input('>>> ')
                     match loggedChoiche:
