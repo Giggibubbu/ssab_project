@@ -61,7 +61,6 @@ if __name__ == '__main__':
         for address in addresses['shardAddresses']:
             web3InstanceList.append(Web3(Web3.HTTPProvider(address)))
         offChainManager = OffchainManager(web3BchManagement, web3InstanceList)
-        offChainManager.isSCManagementDeployed()
     except Exception as e:
         print(e)
 
