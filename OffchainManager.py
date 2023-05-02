@@ -1,4 +1,4 @@
-
+from web3 import exceptions
 
 class OffchainManager:
 
@@ -11,10 +11,20 @@ class OffchainManager:
 
         
     def isSCManagementDeployed(self):
-        firstBlock = self.__web3ManagementInstance.eth.get_block(1, True)
-        firstTransaction = firstBlock['transactions'][0]
-        firstReceipt = self.__web3ManagementInstance.eth.get_transaction_receipt(firstTransaction['hash'])
-        print(firstReceipt)
+        try:
+            firstBlock = self.__web3ManagementInstance.eth.get_block(1)
+            print(firstBlock)
+            firstTransaction = firstBlock['transactions'][0]
+            firstReceipt = self.__web3ManagementInstance.eth.get_transaction_receipt(firstTransaction)
+            print("\n\n", firstReceipt['contractAddress'])
+
+        except exceptions.TransactionNotFound as e:
+            print("Nel primo blocco minato non è presen")
+        except exceptions.BlockNotFound as e:
+            print("Effettuare il deploy di uno smart contract sulla blockchain di management")
+
+
+        
     
     #def deploy(privateKey):
         

@@ -52,37 +52,23 @@ def readBchSettingsFromFile():
 
 
 if __name__ == '__main__':
-
+    
+    
     try:
         addresses = readBchSettingsFromFile()
-        print(addresses)
+        web3BchManagement = Web3(Web3.HTTPProvider(addresses['managementAddress']))
+        web3InstanceList = []
+        for address in addresses['shardAddresses']:
+            web3InstanceList.append(Web3(Web3.HTTPProvider(address)))
+        offChainManager = OffchainManager(web3BchManagement, web3InstanceList)
+        offChainManager.isSCManagementDeployed()
     except Exception as e:
         print(e)
-    web3BchManagement = Web3(Web3.HTTPProvider(addresses['managementAddress']))
-    web3InstanceList = []
-    for address in addresses['shardAddresses']:
-        web3InstanceList.append(Web3(Web3.HTTPProvider(address)))
-    offChainManager = OffchainManager(web3BchManagement, web3InstanceList)
-    offChainManager.isSCManagementDeployed()
-    
 
 
-
-
-    
-    
-    
-    
-    
-
-
-
-
-
-    '''x = True
     loggedUser = ''
-    
-    while(x):
+    x = True
+    while x:
 
         print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Effettua la registrazione\n3. Termina l'esecuzione\nLa digitazione di qualunque altro carattere comporterà la terminazione del programma.")
         choiche = input(">>> ")   
@@ -91,7 +77,8 @@ if __name__ == '__main__':
 
         match choiche:
             case '1':
-                print("Inserisci la chiave pubblica e la chiave privata")
+                print("Inserisci la tua chiave privata")
+
                 loggedUser = User()
                 #loginResult == 1 allora si deve ritornare a richiestadeploy e richiesta metodo (menu) 
                 #loginResult == 0 allora si f
@@ -131,9 +118,9 @@ if __name__ == '__main__':
             case '3':
                 print("Termina l'esecuzione")
                 choiche = '3'
-                x = False
+                booleanMenu = False
             case default:
-                print("Il carattere digitato non corrisponde ad alcuna funzionalità")'''
+                print("Il carattere digitato non corrisponde ad alcuna funzionalità")
 
 
                 
