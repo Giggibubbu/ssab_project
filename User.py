@@ -1,11 +1,15 @@
 class User:
-    _privateKey =""
+    __privateKey = ""
 
     def __init__(self, privateKey):
-        self._privateKey = privateKey
+        self.__privateKey = privateKey
 
-    #gestire le eccezioni sulla lunghezza, sintassi della chiave privata
-    def _setPrivateKey(self, privateKey):
-        isPrivateKeyValid=False
-        _privateKey=privateKey    
+    # gestire le eccezioni sulla lunghezza, sintassi della chiave privata
+    def verifyPrivateKey(self):
+        isPrivateKeyValid=False 
         return isPrivateKeyValid
+    
+    def getPrivateKey(self):
+        return self.__privateKey
+    def setPrivateKey(self, privateKey):
+        self.__privateKey = privateKey

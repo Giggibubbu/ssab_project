@@ -60,12 +60,13 @@ if __name__ == '__main__':
         web3InstanceList = []
         for address in addresses['shardAddresses']:
             web3InstanceList.append(Web3(Web3.HTTPProvider(address)))
+
         offChainManager = OffchainManager(web3BchManagement, web3InstanceList)
     except Exception as e:
         print(e)
 
 
-    loggedUser = ''
+    loggedUser = User('')
     x = True
     while x:
 
@@ -77,13 +78,11 @@ if __name__ == '__main__':
         match choiche:
             case '1':
                 print("Inserisci la tua chiave privata")
-
-                loggedUser = User()
-                #loginResult == 1 allora si deve ritornare a richiestadeploy e richiesta metodo (menu) 
-                #loginResult == 0 allora si f
-                # a tornare l'utente allo switch esterno
-                loginResult = True
+                privateKey = input(">>> ")
+                loggedUser.setPrivateKey(privateKey)
+                loginResult = loggedUser.verifyPrivateKey()
                 while(loginResult):
+                    offChainManager.isSCManagementDeployed(privateKey, addresses['shardAddresses'])
                     print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Effettua il logout\n")
                     
 
@@ -111,8 +110,8 @@ if __name__ == '__main__':
                 choiche = '1'
 
             case '2':
-                print("Generazione della chiave privata e pubblica...\n...")
-                print("Utente registrato!")
+                print("Generazione della chiave privata...\n...")
+                print("\nUtente registrato!")
                 choiche = '2'
             case '3':
                 print("Termina l'esecuzione")
