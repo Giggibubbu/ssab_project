@@ -1,3 +1,4 @@
+import re
 class User:
     __privateKey = ""
 
@@ -6,8 +7,7 @@ class User:
 
     # gestire le eccezioni sulla lunghezza, sintassi della chiave privata
     def verifyPrivateKey(self):
-        isPrivateKeyValid=False 
-        return isPrivateKeyValid
+        return re.search("\A([0]{1}[xX]{1})\w{64}", self.__privateKey)
     
     def getPrivateKey(self):
         return self.__privateKey
