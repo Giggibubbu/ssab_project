@@ -5,7 +5,7 @@ from User import User
 from OffchainManager import OffchainManager
 import re
 
-def verify_address(address):
+def verifyAddress(address):
    result = re.search("^http://127[.]0[.]0[.]1:[0-9]{1,5}$", address)
    if result:
     number = address.split(":")
@@ -31,12 +31,12 @@ def readBchSettingsFromFile():
                 splittedLine = line.split('=')
                 confData[splittedLine[0]] = splittedLine[1]
         confData['shardAddresses'] = confData['shardAddresses'].split(';')
-        if not verify_address(confData['managementAddress']):
+        if not verifyAddress(confData['managementAddress']):
             raise Exception("Management address not valid.")
         if len(confData['shardAddresses']) <2:
             raise Exception("You have to set up at least two shards")
         for ad in confData['shardAddresses']:
-            if not verify_address(ad):
+            if not verifyAddress(ad):
                 raise Exception("Shard address not valid.")
         confFile.close()
         return confData
@@ -90,7 +90,9 @@ if __name__ == '__main__':
                     loggedChoiche = input('>>> ')
                     match loggedChoiche:
                         case '1':
-                            OffchainManager.deploy()
+                            print("Inserisci il contratto nella cartella user_sc_to_deploy del programma e fornisci il nome del file contenente lo smart contract da deployare.")
+                            contractFileName = input(">>> ")
+                            offChainManager.deploy(privateKey, contractFileName)
                             print("Deploy effettuato")
                             loggedChoiche = '1'
                         case '2':

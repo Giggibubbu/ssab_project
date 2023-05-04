@@ -15,7 +15,6 @@ contract BlockchainLoadBalancing {
     
     struct SmartContract
     {
-        string contractName;
         string contractBinary;
         address owner;
     }
@@ -87,10 +86,9 @@ contract BlockchainLoadBalancing {
        Writes smart contract data inside the corresponding target shard struct of
        the OnChainManager.
     */
-    function confirmDeploy(address contractAddress, string calldata contractName, string calldata contractBinary) public
+    function confirmDeploy(address contractAddress, string calldata contractBinary) public
     {
 
-        blockchain[targetShardForDeploy].smartContracts[contractAddress].contractName = contractName;
         blockchain[targetShardForDeploy].smartContracts[contractAddress].contractBinary = contractBinary;
         blockchain[targetShardForDeploy].smartContracts[contractAddress].owner = msg.sender;
         blockchain[targetShardForDeploy].contractsArray.push(contractAddress);

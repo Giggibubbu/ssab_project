@@ -32,11 +32,10 @@ class OffchainManager:
     def isSCManagementDeployed(self, userPrivateKey, addresses):
         try:
             firstBlock = self.__web3ManagementInstance.eth.get_block(1)
-            print(firstBlock)
             firstTransaction = firstBlock['transactions'][0]
             firstReceipt = self.__web3ManagementInstance.eth.get_transaction_receipt(firstTransaction)
             self.__contractManagementAddress = firstReceipt['contractAddress']
-            self.__contractManagementAbi, bytecode = self.__compileScManagement("management.sol")
+            self.__contractManagementAbi, bytecode = self.__compileScManagement("sc_mngmt/management.sol")
         except (exceptions.BlockNotFound) as e:
             self.__deployScManagement(userPrivateKey, addresses)
     
@@ -44,8 +43,8 @@ class OffchainManager:
        Function used for compiling smart contracts (including management smart contract) and returning its abi and
        bytecode.
     '''
-    def __compileScManagement(self, contractFileName):
-        with open("sc_mngmt/"+contractFileName, 'r') as f:
+    def __compileScManagement(self, contractDirAndName):
+        with open(contractDirAndName, 'r') as f:
             source = f.read()
         compiled_sol=solcx.compile_source(source)
         contract_id, contract_interface=compiled_sol.popitem()
@@ -59,7 +58,7 @@ class OffchainManager:
        (__contractManagementAbi and __contractManagementAddress)
     '''    
     def __deployScManagement(self, userPrivateKey, addresses):
-        abi, bytecode = self.__compileScManagement("management.sol")
+        abi, bytecode = self.__compileScManagement("sc_mngmt/management.sol")
         userAccount=Account.from_key(userPrivateKey)
         self.__web3ManagementInstance.eth.default_account=userAccount.address
         contract = self.__web3ManagementInstance.eth.contract(abi=abi, bytecode=bytecode)
@@ -68,7 +67,31 @@ class OffchainManager:
         self.__contractManagementAbi = abi
         self.__contractManagementAddress = txReceipt['contractAddress']
 
-    #def deploy(privateKey):
+    def deploy(self, privateKey, contractFileName):
+        scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
+        userAccount = Account.from_key(privateKey)
+        self.__web3ManagementInstance.eth.default_account=userAccount.address
+        shardStateEvent = scManagement.events.ShardState()
+        txHash = scManagement.functions.whereToDeploy().transact()
+        txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
+        result = shardStateEvent.process_receipt(txReceipt)
+        shardStateEventDict = result[0]['args']
+        targetShard = shardStateEventDict['whereToDeploy']
+
+
+        scAbiToDeploy, scBytecodeToDeploy = self.__compileScManagement("user_sc_to_deploy/"+contractFileName)
+        userSC=self.__web3ShardsInstances[targetShard].eth.contract(abi=scAbiToDeploy, bytecode=scBytecodeToDeploy)
+        self.__web3ShardsInstances[targetShard].eth.default_account = userAccount.address
+        txUserSCHash = userSC.constructor().transact()
+        txUserSCReceipt = self.__web3ShardsInstances[targetShard].eth.wait_for_transaction_receipt(txUserSCHash)
+
+        txConfirmDeploy = scManagement.functions.confirmDeploy(contractAddress=txUserSCReceipt.contractAddress, contractBinary="{scAbiToDeploy}").transact()
+        txReceiptConfirmDeploy = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txConfirmDeploy)
+
+
+
+
+
         
 
 
