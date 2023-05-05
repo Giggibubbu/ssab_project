@@ -101,6 +101,7 @@ if __name__ == '__main__':
                             loggedChoiche = '2'
                         case '3':
                             # dimentica l'utente
+                            loggedUser.setPrivateKey(None)
                             print("Logout effettuato")
                             loggedChoiche = '3'
                             loginResult = False
