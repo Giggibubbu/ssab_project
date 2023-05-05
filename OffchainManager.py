@@ -88,6 +88,12 @@ class OffchainManager:
         txConfirmDeploy = scManagement.functions.confirmDeploy(contractAddress=txUserSCReceipt.contractAddress, contractBinary="{scAbiToDeploy}").transact()
         txReceiptConfirmDeploy = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txConfirmDeploy)
 
+    def callMethod():
+        
+
+
+
+
 
 
 
