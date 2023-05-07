@@ -37,10 +37,6 @@ contract BlockchainLoadBalancing {
         uint256 whereToDeploy
     );
 
-    event ReturnContracts(
-        address[] contractsAddresses
-    );
-
     // Initializes Shards and internal variables
     constructor(uint256 shardCount, string[] memory httpAddress)
     {
@@ -116,12 +112,9 @@ contract BlockchainLoadBalancing {
         return (contractToShard[contractAddress]);
     }
 
-    function returnAllContracts() public
+    function returnAllContracts(uint256 s) public view returns (address[] memory)
     {
-        for(uint256 i = 0; i<numberOfShard; i++)
-        {
-            emit ReturnContracts(blockchain[i].contractsArray);
-        }
+        return blockchain[s].contractsArray;
     }
 
 

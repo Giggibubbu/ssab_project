@@ -88,17 +88,30 @@ class OffchainManager:
         txConfirmDeploy = scManagement.functions.confirmDeploy(contractAddress=txUserSCReceipt.contractAddress, contractBinary="{scAbiToDeploy}").transact()
         txReceiptConfirmDeploy = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txConfirmDeploy)
 
-    def callMethod(self, privateKey):
+    
+    def retrieveContracts(self):
+        c=0
+        allContracts=[]
         scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
-        userAccount = Account.from_key(privateKey)
-        self.__web3ManagementInstance.eth.default_account=userAccount.address
-        contractsEvent = scManagement.events.ReturnContracts()
-        txHash = scManagement.functions.returnAllContracts().transact()
-        txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
-        result = contractsEvent.process_receipt(txReceipt)
-        contractsEventDict = result[0]['args']
-        targetShard = shardStateEventDict['returnAllContracts']
-        print("ok")
+        for shard in self.__web3ShardsInstances:
+            allContracts.append(scManagement.functions.returnAllContracts(c).call())
+            c=c+1
+        return allContracts
+
+    def shard(self, address):
+        scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
+        scManagement.functions.whereIsContractDeployed(address). call()
+
+    def retrieveFunctions(self, shard):
+        #prendere abi associata al contratto
+        #costruzione del contratto e chiamata all_functions
+
+
+    
+        
+
+        
+
 
 
 

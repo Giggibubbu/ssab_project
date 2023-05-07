@@ -42,6 +42,15 @@ def readBchSettingsFromFile():
         return confData
     except Exception as e:
         print(e)
+    
+def formatList(listsContracts):
+    contracts=[]
+    for listc in listsContracts:
+        for contract in listc:
+            contracts.append(contract)
+    return contracts
+
+
 
 
 
@@ -96,7 +105,12 @@ if __name__ == '__main__':
                             print("Deploy effettuato")
                             loggedChoiche = '1'
                         case '2':
-                            
+                            print("seleziona l'indirizzo del contratto, scegliendo fra i seguenti")
+                            print(formatList(offChainManager.retrieveContracts()))
+                            address=input(">>> ") #tryexcept
+                            shard=offChainManager.shard(address)
+                            print("seleziona ua funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
+                            offChainManager.retrieveFunctions(shard, address)#tryexcept
                             print("Transazione effettuata")
                             loggedChoiche = '2'
                         case '3':
