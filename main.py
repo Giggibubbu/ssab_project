@@ -123,5 +123,7 @@ if __name__ == '__main__':
             case default:
                 print("Il carattere digitato non corrisponde ad alcuna funzionalità")
 
+            
+
 
                 
