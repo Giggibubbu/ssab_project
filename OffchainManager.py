@@ -88,10 +88,17 @@ class OffchainManager:
         txConfirmDeploy = scManagement.functions.confirmDeploy(contractAddress=txUserSCReceipt.contractAddress, contractBinary="{scAbiToDeploy}").transact()
         txReceiptConfirmDeploy = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txConfirmDeploy)
 
-    def callMethod():
-        
-
-
+    def callMethod(self, privateKey):
+        scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
+        userAccount = Account.from_key(privateKey)
+        self.__web3ManagementInstance.eth.default_account=userAccount.address
+        contractsEvent = scManagement.events.ReturnContracts()
+        txHash = scManagement.functions.returnAllContracts().transact()
+        txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
+        result = contractsEvent.process_receipt(txReceipt)
+        contractsEventDict = result[0]['args']
+        targetShard = shardStateEventDict['returnAllContracts']
+        print("ok")
 
 
 
