@@ -55,6 +55,7 @@ def formatList(listsContracts):
 
 
 
+
         
 
 
@@ -77,9 +78,9 @@ if __name__ == '__main__':
 
     loggedUser = User('')
     x = True
-    while x:
+    while True and x:
 
-        print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Effettua la registrazione\n3. Termina l'esecuzione\nLa digitazione di qualunque altro carattere comporterà la terminazione del programma.")
+        print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Effettua la registrazione\n3. Termina l'esecuzione.")
         choiche = input(">>> ")   
 
 
@@ -103,21 +104,30 @@ if __name__ == '__main__':
                             contractFileName = input(">>> ")
                             offChainManager.deploy(privateKey, contractFileName)
                             print("Deploy effettuato")
-                            loggedChoiche = '1'
+                            
                         case '2':
-                            print("seleziona l'indirizzo del contratto, scegliendo fra i seguenti")
-                            print(formatList(offChainManager.retrieveContracts()))
-                            address=input(">>> ") #tryexcept
-                            shard=offChainManager.shard(address)
-                            print("seleziona ua funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
-                            offChainManager.retrieveFunctions(shard, address)#tryexcept
-                            print("Transazione effettuata")
-                            loggedChoiche = '2'
+                            print("Seleziona il contratto, scegliendo fra i seguenti")
+                            contractsList = formatList(offChainManager.retrieveContracts())
+                            ##print contracts
+                            print(contractsList)
+                            chosenContractAddress=input(">>> ") #tryexcept
+                            isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
+                            if  isNumber and int(chosenContractAddress)<len(contractsList):
+                                shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[int(chosenContractAddress)])
+                                print("seleziona ua funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
+                                contractFunctions=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[int(chosenContractAddress)])
+                                print(contractFunctions)
+                                chosenFunction = input(">>> ")
+
+                                print(contractFunctions)
+                                print("Transazione effettuata")
+                            else:
+                                print("Inserisci un numero tra quelli elencati!")
+                            
                         case '3':
                             # dimentica l'utente
                             loggedUser.setPrivateKey(None)
                             print("Logout effettuato")
-                            loggedChoiche = '3'
                             loginResult = False
                         case default:
                             print("Carattere errato")  
@@ -129,11 +139,8 @@ if __name__ == '__main__':
             case '2':
                 print("Generazione della chiave privata...\n...")
                 print("\nUtente registrato!")
-                choiche = '2'
             case '3':
-                print("Termina l'esecuzione")
-                choiche = '3'
-                booleanMenu = False
+                x = False
             case default:
                 print("Il carattere digitato non corrisponde ad alcuna funzionalità")
 

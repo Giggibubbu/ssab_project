@@ -15,6 +15,7 @@ contract BlockchainLoadBalancing {
     
     struct SmartContract
     {
+        string contractName;
         string contractBinary;
         address owner;
     }
@@ -28,7 +29,6 @@ contract BlockchainLoadBalancing {
 
     event Deploy(
         address contractAddress,
-        string message,
         uint256 deployedToShard
     );
 
@@ -86,15 +86,15 @@ contract BlockchainLoadBalancing {
        Writes smart contract data inside the corresponding target shard struct of
        the OnChainManager.
     */
-    function confirmDeploy(address contractAddress, string calldata contractBinary) public
+    function confirmDeploy(address contractAddress, string calldata contractName, string calldata contractBinary) public
     {
-
+        blockchain[targetShardForDeploy].smartContracts[contractAddress].contractName = contractName;
         blockchain[targetShardForDeploy].smartContracts[contractAddress].contractBinary = contractBinary;
         blockchain[targetShardForDeploy].smartContracts[contractAddress].owner = msg.sender;
         blockchain[targetShardForDeploy].contractsArray.push(contractAddress);
         contractToShard[contractAddress] = targetShardForDeploy;
         counterState = CounterInternalStates.CounterNotChanged;
-        emit Deploy(contractAddress, "deploy confirmed to shard n. ", targetShardForDeploy);  
+        emit Deploy(contractAddress, targetShardForDeploy);  
     }
 
     /* Resets counter when whereToDeploy was called but no confirmDeploy were executed. */
@@ -106,15 +106,15 @@ contract BlockchainLoadBalancing {
         }
     }
 
-    // Returns  the shard where the contract with address contractAddress is deployed
-    function whereIsContractDeployed(address contractAddress) public view returns (uint256)
+    // Returns  the shard where the contract with is deployed
+    function whereIsContractDeployed(address contractAddress) public view returns (uint256, SmartContract memory)
     {
-        return (contractToShard[contractAddress]);
+        return (contractToShard[contractAddress], blockchain[contractToShard[contractAddress]].smartContracts[contractAddress]);
     }
 
-    function returnAllContracts(uint256 s) public view returns (address[] memory)
+    function returnAllContracts(uint256 shardNumber) public view returns (address[] memory)
     {
-        return blockchain[s].contractsArray;
+        return blockchain[shardNumber].contractsArray;
     }
 
 
