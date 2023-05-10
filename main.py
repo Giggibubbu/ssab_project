@@ -116,7 +116,7 @@ if __name__ == '__main__':
                                 shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[int(chosenContractAddress)])
                                 print("seleziona ua funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
                                 contractFunctions=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[int(chosenContractAddress)])
-                                print(contractFunctions)
+                                #print(contractFunctions)
                                 chosenFunction = input(">>> ")
 
                                 print(contractFunctions)

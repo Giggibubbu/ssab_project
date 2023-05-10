@@ -1,7 +1,7 @@
 from web3 import exceptions
 import solcx
 from web3 import Account
-
+import jsonpickle
 class OffchainManager:
 
     __web3ManagementInstance = None
@@ -106,9 +106,11 @@ class OffchainManager:
     def retrieveFunctions(self, shardNumber, userChosenContract, chosenContractAddress):
         #prendere abi associata al contratto
         #costruzione del contratto e chiamata all_functions
-
-        chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=userChosenContract[1])
-        contractFunctions = []
-        for function in chosenContract.all_functions():
-            contractFunctions.append(function.fn_name)
-        return contractFunctions
+        usc = userChosenContract[1].replace("\'", "\"")
+        jp= jsonpickle.unpickler.decode(usc)
+        chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=jp)
+        print(chosenContract.all_functions())
+        #contractFunctions = []
+        #for function in chosenContract.all_functions():
+            #contractFunctions.append(function.fn_name)
+        #return contractFunctions
