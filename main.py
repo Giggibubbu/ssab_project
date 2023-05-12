@@ -118,8 +118,9 @@ if __name__ == '__main__':
                                 contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[int(chosenContractAddress)])
                                 # da formattare meglio il print delle funzioni del singolo contratto
                                 print(contractFunctions)
+                                # controllo che sia un numero
                                 chosenFunction = input(">>> ")
-                                offChainManager.runChosenFunction(shardNumber, chosenContractAddress, contractAbi, chosenFunction)
+                                offChainManager.runChosenFunction(loggedUser.getPrivateKey(), shardNumber, chosenContractAddress, contractAbi, contractFunctions[int(chosenFunction)])
                                 print("Transazione effettuata")
                             else:
                                 print("Inserisci un numero tra quelli elencati!")

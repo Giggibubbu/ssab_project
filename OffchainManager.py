@@ -100,20 +100,33 @@ class OffchainManager:
     def retrieveContract(self, address):
         scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
         shNumberAndContract = scManagement.functions.whereIsContractDeployed(address).call()
-        print(shNumberAndContract)
         return shNumberAndContract[0], shNumberAndContract[1]
 
     def retrieveFunctions(self, shardNumber, userChosenContract, chosenContractAddress):
+        print(userChosenContract[1])
         usc = userChosenContract[1].replace("\'", "\"")
         jp = jsonpickle.unpickler.decode(usc)
         chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=jp)
         contractFunctions = []
         for function in chosenContract.all_functions():
             contractFunctions.append(function.fn_name)
-        return contractFunctions
+        return contractFunctions, jp
     
-    def runChosenFunction(self, shardNumber, chosenContractAddress, chosenContractAbi, chosenFunction):
+    def runChosenFunction(self, userPKey, shardNumber, chosenContractAddress, chosenContractAbi, chosenFunction):
         chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=chosenContractAbi)
+        userAccount = Account.from_key(userPKey)
+        self.__web3ManagementInstance.eth.default_account=userAccount.address
+        for function in chosenContract.all_functions():
+            if function.fn_name == chosenFunction:
+                for dictionary in chosenContractAbi:
+                    if dictionary['name'] == chosenFunction:
+                        if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
+                            function().call()
+                        else:
+                            function().transact()
+
+
+
         
 
 
