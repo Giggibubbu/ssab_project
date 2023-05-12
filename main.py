@@ -108,18 +108,18 @@ if __name__ == '__main__':
                         case '2':
                             print("Seleziona il contratto, scegliendo fra i seguenti")
                             contractsList = formatList(offChainManager.retrieveContracts())
-                            ##print contracts
+                            # da formattare meglio il print dei contratti
                             print(contractsList)
                             chosenContractAddress=input(">>> ") #tryexcept
                             isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
                             if  isNumber and int(chosenContractAddress)<len(contractsList):
                                 shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[int(chosenContractAddress)])
                                 print("seleziona ua funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
-                                contractFunctions=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[int(chosenContractAddress)])
-                                #print(contractFunctions)
-                                chosenFunction = input(">>> ")
-
+                                contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[int(chosenContractAddress)])
+                                # da formattare meglio il print delle funzioni del singolo contratto
                                 print(contractFunctions)
+                                chosenFunction = input(">>> ")
+                                offChainManager.runChosenFunction(shardNumber, chosenContractAddress, contractAbi, chosenFunction)
                                 print("Transazione effettuata")
                             else:
                                 print("Inserisci un numero tra quelli elencati!")

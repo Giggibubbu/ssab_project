@@ -104,13 +104,16 @@ class OffchainManager:
         return shNumberAndContract[0], shNumberAndContract[1]
 
     def retrieveFunctions(self, shardNumber, userChosenContract, chosenContractAddress):
-        #prendere abi associata al contratto
-        #costruzione del contratto e chiamata all_functions
         usc = userChosenContract[1].replace("\'", "\"")
-        jp= jsonpickle.unpickler.decode(usc)
+        jp = jsonpickle.unpickler.decode(usc)
         chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=jp)
-        print(chosenContract.all_functions())
-        #contractFunctions = []
-        #for function in chosenContract.all_functions():
-            #contractFunctions.append(function.fn_name)
-        #return contractFunctions
+        contractFunctions = []
+        for function in chosenContract.all_functions():
+            contractFunctions.append(function.fn_name)
+        return contractFunctions
+    
+    def runChosenFunction(self, shardNumber, chosenContractAddress, chosenContractAbi, chosenFunction):
+        chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=chosenContractAbi)
+        
+
+
