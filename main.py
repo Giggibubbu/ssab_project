@@ -94,9 +94,6 @@ if __name__ == '__main__':
                 while(loginResult):
                     offChainManager.isSCManagementDeployed(privateKey, addresses['shardAddresses'])
                     print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Effettua il logout\n")
-                    
-
-
                     loggedChoiche = input('>>> ')
                     match loggedChoiche:
                         case '1':
@@ -106,27 +103,33 @@ if __name__ == '__main__':
                             print("Deploy effettuato")
                             
                         case '2':
-                            print("Seleziona il contratto, scegliendo fra i seguenti")
+                            print("Seleziona il contratto al quale sei interessato, scegliendo fra i seguenti")
                             contractsList = formatList(offChainManager.retrieveContracts())
                             # da formattare meglio il print dei contratti
                             print(contractsList)
                             chosenContractAddress=input(">>> ") #tryexcept
                             isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
+                            intChosenContractAddr = int(chosenContractAddress)
                             if  isNumber and int(chosenContractAddress)<len(contractsList):
-                                shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[int(chosenContractAddress)])
-                                print("seleziona ua funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
-                                contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[int(chosenContractAddress)])
+                                shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[intChosenContractAddr])
+                                print("Seleziona una funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
+                                contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[intChosenContractAddr])
                                 # da formattare meglio il print delle funzioni del singolo contratto
                                 print(contractFunctions)
                                 # controllo che sia un numero
                                 chosenFunction = input(">>> ")
-                                offChainManager.runChosenFunction(loggedUser.getPrivateKey(), shardNumber, chosenContractAddress, contractAbi, contractFunctions[int(chosenFunction)])
+                                intChosenFunction = int(chosenFunction)
+                                chosenFunctionTypeArgs = offChainManager.retrieveFunctionArgs(contractAbi, contractFunctions[intChosenFunction])
+                                print(f"La funzione scelta prende n.{len(chosenFunctionTypeArgs)} argomenti dei seguenti tipi: {chosenFunctionTypeArgs}\nInserisci il loro valore separato da ; (es. arg1;arg2;...)")
+                                chosenFunctionArgs = input(">>> ")
+                                # controllo pattern stringa chosenFunctionArgs
+                                chosenFunctionArgs = chosenFunctionArgs.split(";")
+                                offChainManager.runChosenFunction(privateKey, shardNumber, contractsList[intChosenContractAddr], contractAbi, contractFunctions[intChosenFunction], chosenFunctionArgs, chosenFunctionTypeArgs)
                                 print("Transazione effettuata")
                             else:
                                 print("Inserisci un numero tra quelli elencati!")
                             
                         case '3':
-                            # dimentica l'utente
                             loggedUser.setPrivateKey(None)
                             print("Logout effettuato")
                             loginResult = False

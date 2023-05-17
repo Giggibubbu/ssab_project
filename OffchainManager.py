@@ -2,6 +2,7 @@ from web3 import exceptions
 import solcx
 from web3 import Account
 import jsonpickle
+import importlib
 class OffchainManager:
 
     __web3ManagementInstance = None
@@ -103,27 +104,76 @@ class OffchainManager:
         return shNumberAndContract[0], shNumberAndContract[1]
 
     def retrieveFunctions(self, shardNumber, userChosenContract, chosenContractAddress):
-        print(userChosenContract[1])
         usc = userChosenContract[1].replace("\'", "\"")
         jp = jsonpickle.unpickler.decode(usc)
+        print(jp)
         chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=jp)
         contractFunctions = []
+        argsFunction = []
         for function in chosenContract.all_functions():
             contractFunctions.append(function.fn_name)
         return contractFunctions, jp
     
-    def runChosenFunction(self, userPKey, shardNumber, chosenContractAddress, chosenContractAbi, chosenFunction):
+    def retrieveFunctionArgs(self, chosenContractAbi, chosenFunction):
+        chosenFunctionArgs = []
+        for dictionary in chosenContractAbi:
+            if 'name' in dictionary and dictionary['name'] == chosenFunction:
+                print("###################")
+                print(dictionary['inputs'])
+                print("###################")
+                if len(dictionary['inputs']) != 0:
+                   for args in dictionary['inputs']:
+                       chosenFunctionArgs.append(args['type'])
+        return chosenFunctionArgs   
+
+
+
+    def runChosenFunction(self, userPKey, shardNumber, chosenContractAddress, chosenContractAbi, chosenFunction, chosenFunctionArgs, chosenFunctionTypeArgs):
+        # controllo tipi e argomenti inseriti dall'utente
+        c=0
+        if len(chosenFunctionArgs) > 0:
+            for argType in chosenFunctionTypeArgs:
+                chosenFunctionArgs[c] = self.convert(chosenFunctionArgs[c], argType)
+                c = c+1
+
+                
+
+        
         chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=chosenContractAbi)
         userAccount = Account.from_key(userPKey)
-        self.__web3ManagementInstance.eth.default_account=userAccount.address
+        self.__web3ShardsInstances[shardNumber].eth.default_account=userAccount.address
+        # questo for è inutile
         for function in chosenContract.all_functions():
             if function.fn_name == chosenFunction:
                 for dictionary in chosenContractAbi:
-                    if dictionary['name'] == chosenFunction:
-                        if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
-                            function().call()
+                    if 'name' in dictionary and dictionary['name'] == chosenFunction:
+                        if len(dictionary['inputs']) == 0:
+                            if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
+                                contract_func = chosenContract.functions[chosenFunction]
+                                return contract_func.__call__().call()
+                            else:
+                                contract_func = chosenContract.functions[chosenFunction]
+                                txHash = contract_func.__call__().transact()
+                                txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
+                                return txHash
                         else:
-                            function().transact()
+                            if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
+                                contract_func = chosenContract.functions[chosenFunction]
+                                return contract_func.__call__().call(*chosenFunctionArgs)
+                            else:
+                                contract_func = chosenContract.functions[chosenFunction]
+                                txHash = contract_func.__call__().transact(*chosenFunctionArgs)
+                                txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
+                                return txHash
+                            
+    def convert(self, value, type_):
+        # Check if it's a builtin type
+        module = importlib.import_module('builtins')
+        cls = getattr(module, type_)
+        return cls(value)
+        
+
+
 
 
 
