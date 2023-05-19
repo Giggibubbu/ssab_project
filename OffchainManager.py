@@ -3,6 +3,7 @@ import solcx
 from web3 import Account
 import jsonpickle
 import importlib
+import re
 class OffchainManager:
 
     __web3ManagementInstance = None
@@ -118,9 +119,6 @@ class OffchainManager:
         chosenFunctionArgs = []
         for dictionary in chosenContractAbi:
             if 'name' in dictionary and dictionary['name'] == chosenFunction:
-                print("###################")
-                print(dictionary['inputs'])
-                print("###################")
                 if len(dictionary['inputs']) != 0:
                    for args in dictionary['inputs']:
                        chosenFunctionArgs.append(args['type'])
@@ -168,10 +166,40 @@ class OffchainManager:
                             
     def convert(self, value, type_):
         # Check if it's a builtin type
-        module = importlib.import_module('builtins')
-        cls = getattr(module, type_)
-        return cls(value)
         
+        match type_:
+            case "string":
+                type_ = "str"
+            case "address":
+                type_ = "str"
+            case re.search("^int[0-9]{1,3}$", type_):
+                type_ = "int"
+            case re.search("^uint[0-9]{1,3}$", type_):
+                type_ = "int"
+
+        module = importlib.import_module('builtins')
+        if not re.search("\[\]$", type_):
+            cls = getattr(module, type_)
+            return cls(value)
+        else:
+            array = []
+            match type_:
+                case re.search("^string\[\]$"):
+                    for element in value:
+                        array.append(str(element))
+                case re.search("^address\[\]$"):
+                    for element in value:
+                        array.append(str(element))
+                case re.search("^uint[0-9]{1,3}\[\]$"):
+                    for element in value:
+                        array.append(int(element))
+                case re.search("^int[0-9]{1,3}\[\]$"):
+                    for element in value:
+                        array.append(int(element))
+                case re.search("^bool\[\]$"):
+                    for element in value:
+                        array.append(bool(element))
+            return array
 
 
 
