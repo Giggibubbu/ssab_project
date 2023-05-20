@@ -160,22 +160,20 @@ class OffchainManager:
                                 return contract_func.__call__().call(*chosenFunctionArgs)
                             else:
                                 contract_func = chosenContract.functions[chosenFunction]
-                                txHash = contract_func.__call__().transact(*chosenFunctionArgs)
+                                txHash = contract_func.__call__(*chosenFunctionArgs).transact()
                                 txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
                                 return txHash
                             
     def convert(self, value, type_):
         # Check if it's a builtin type
-        
-        match type_:
-            case "string":
-                type_ = "str"
-            case "address":
-                type_ = "str"
-            case re.search("^int[0-9]{1,3}$", type_):
-                type_ = "int"
-            case re.search("^uint[0-9]{1,3}$", type_):
-                type_ = "int"
+        if(type_== "string"):
+            type_ = "str"
+        elif(type_== "address"):
+            type_ = "str"
+        elif( re.search("^int[0-9]{1,3}$", type_)):
+            type_ = "int"
+        elif( re.search("^uint[0-9]{1,3}$", type_)):
+            type_ = "int"
 
         module = importlib.import_module('builtins')
         if not re.search("\[\]$", type_):
@@ -183,22 +181,21 @@ class OffchainManager:
             return cls(value)
         else:
             array = []
-            match type_:
-                case re.search("^string\[\]$"):
-                    for element in value:
-                        array.append(str(element))
-                case re.search("^address\[\]$"):
-                    for element in value:
-                        array.append(str(element))
-                case re.search("^uint[0-9]{1,3}\[\]$"):
-                    for element in value:
-                        array.append(int(element))
-                case re.search("^int[0-9]{1,3}\[\]$"):
-                    for element in value:
-                        array.append(int(element))
-                case re.search("^bool\[\]$"):
-                    for element in value:
-                        array.append(bool(element))
+            if(re.search("^string\[\]$", type_)):
+                for element in value:
+                    array.append(str(element))
+            elif(re.search("^address\[\]$", type_)):
+                for element in value:
+                    array.append(str(element))
+            elif(re.search("^uint[0-9]{1,3}\[\]$", type_)):
+                for element in value:
+                    array.append(int(element))
+            elif( re.search("^int[0-9]{1,3}\[\]$", type_)):
+                for element in value:
+                    array.append(int(element))
+            elif(re.search("^bool\[\]$", type_)):
+                for element in value:
+                    array.append(bool(element))
             return array
 
 

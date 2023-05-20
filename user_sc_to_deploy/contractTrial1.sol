@@ -9,7 +9,7 @@ pragma solidity >0.5.0;
             greeting = 'Hello';
         }
 
-        function setGreeting(address newAddress, string calldata setString, uint ciao, int32 ciao1, uint32 ciao2, bool boolean, string[] memory array) public {
+        function setGreeting( string calldata setString, int x, uint32 y) public {
             greeting = setString;
         }
 
