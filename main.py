@@ -19,7 +19,8 @@ def verifyAddress(address):
    else:
        return False
 
-# Lancia eccezioni, quindi inserirlo dentro al try. ## da gestire eccezioni nel caso non sia presente il conf.ini ##
+''' La funzione seguente viene richiamata per la lettura del file di configurazione che contiene gli indirizzi delle blockchain utilizzate, 
+nel caso in cui il file non sia presente viene generata '''
 def readBchSettingsFromFile():
     try:
         confFile = open("conf.ini", "r")
@@ -40,115 +41,125 @@ def readBchSettingsFromFile():
                 raise Exception("Shard address not valid.")
         confFile.close()
         return confData
+    except IOError as e:
+        print("Errore nella lettura del file conf.ini")
     except Exception as e:
-        print(e)
-    
+        print("Errore nella lettura del file con.ini")
+
+'''la funzione prende in ingresso listsContracts, che a sua volta contiene altre due liste, crea due liste: 
+una contente gli indirizzi e una i nomi delle funzioni'''
 def formatList(listsContracts):
     contracts=[]
-    for listc in listsContracts:
+    contractsName=[]
+    for listc in listsContracts[0]:
         for contract in listc:
             contracts.append(contract)
-    return contracts
+    for listc in listsContracts[1]:
+        for contract in listc:
+            contractsName.append(contract)
+    return contracts, contractsName
 
-
-
-
-
-
-
-        
-
-
-
-
+#
 if __name__ == '__main__':
-    
-    
     try:
-        addresses = readBchSettingsFromFile()
-        web3BchManagement = Web3(Web3.HTTPProvider(addresses['managementAddress']))
-        web3InstanceList = []
-        for address in addresses['shardAddresses']:
-            web3InstanceList.append(Web3(Web3.HTTPProvider(address)))
+    
+        try:
+            addresses = readBchSettingsFromFile()
+            #creazione dell'istanza web3, connessione alla blockchain di management
+            web3BchManagement = Web3(Web3.HTTPProvider(addresses['managementAddress']))
+            web3InstanceList = []
+            #creazione delle istanze web3, connessione alle blockchain su cui fare deploy
+            for address in addresses['shardAddresses']:
+                web3InstanceList.append(Web3(Web3.HTTPProvider(address)))
+            #creazione dell'istanza dell'Offchain Mananger 
+            offChainManager = OffchainManager(web3BchManagement, web3InstanceList)
+        except Exception as e:
+            print(e)
 
-        offChainManager = OffchainManager(web3BchManagement, web3InstanceList)
+        #creazione dell'istanza dell'utente
+        loggedUser = User('')
+        x = True
+        while True and x:
+
+            print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Effettua la registrazione\n3. Termina l'esecuzione.")
+            choiche = input(">>> ")   
+
+
+
+            match choiche:
+                #login
+                case '1':
+                    print("Inserisci la tua chiave privata")
+                    privateKey = input(">>> ")
+                    loggedUser.setPrivateKey(privateKey)
+                    loginResult = loggedUser.verifyPrivateKey()
+                    while(loginResult):
+                        offChainManager.isSCManagementDeployed(privateKey, addresses['shardAddresses'])
+                        print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Effettua il logout\n")
+                        loggedChoiche = input('>>> ')
+                        match loggedChoiche:
+                            case '1':
+                                print("Inserisci il contratto nella cartella user_sc_to_deploy del programma e fornisci il nome del file contenente lo smart contract da deployare.")
+                                contractFileName = input(">>> ")
+                                offChainManager.deploy(privateKey, contractFileName)
+                                print("Deploy effettuato")
+                                
+                            case '2':
+                                print("Seleziona il contratto al quale sei interessato, scegliendo fra i seguenti")
+                                contractsList = formatList(offChainManager.retrieveContracts())
+                                j=0
+                                for c in contractsList[1]:
+                                    print(f"{j}: {c}")
+                                    j=j+1
+                                chosenContractAddress=input(">>> ") #tryexcept
+                                isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
+                                intChosenContractAddr = int(chosenContractAddress)
+                                if  isNumber and int(chosenContractAddress)<len(contractsList[0]):
+                                    shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[0][intChosenContractAddr])
+                                    print("Seleziona una funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
+                                    contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[0][intChosenContractAddr])
+                                    y=0
+                                    for c in contractFunctions:
+                                        print(f"{y}: {c}")
+                                        y=y+1
+                                    # controllo che sia un numero
+                                    chosenFunction = input(">>> ")
+                                    intChosenFunction = int(chosenFunction)
+                                    chosenFunctionTypeArgs = offChainManager.retrieveFunctionArgs(contractAbi, contractFunctions[intChosenFunction])
+                                    if (len(chosenFunctionTypeArgs)!=0):
+                                        print(f"La funzione scelta prende n.{len(chosenFunctionTypeArgs)} argomenti dei seguenti tipi: {chosenFunctionTypeArgs}\nInserisci il loro valore separato da ; (es. arg1;arg2;...)")
+                                        chosenFunctionArgs = input(">>> ")
+                                        chosenFunctionArgs = chosenFunctionArgs.split(";")
+                                    else:
+                                        chosenFunctionArgs=[]
+                                    # controllo pattern stringa chosenFunctionArgs
+                                    print(offChainManager.runChosenFunction(privateKey, shardNumber, contractsList[0][intChosenContractAddr], contractAbi, contractFunctions[intChosenFunction], chosenFunctionArgs, chosenFunctionTypeArgs))
+                                    print("Transazione effettuata")
+                                else:
+                                    print("Inserisci un numero tra quelli elencati!")
+                                
+                            case '3':
+                                loggedUser.setPrivateKey(None)
+                                print("Logout effettuato")
+                                loginResult = False
+                            case default:
+                                print("Carattere errato")  
+
+
+
+                    choiche = '1'
+
+                case '2':
+                    print("Generazione della chiave privata...\n...")
+                    print("\nUtente registrato!")
+                case '3':
+                    x = False
+                case default:
+                    print("Il carattere digitato non corrisponde ad alcuna funzionalità")
     except Exception as e:
-        print(e)
-
-
-    loggedUser = User('')
-    x = True
-    while True and x:
-
-        print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Effettua la registrazione\n3. Termina l'esecuzione.")
-        choiche = input(">>> ")   
-
-
-
-        match choiche:
-            case '1':
-                print("Inserisci la tua chiave privata")
-                privateKey = input(">>> ")
-                loggedUser.setPrivateKey(privateKey)
-                loginResult = loggedUser.verifyPrivateKey()
-                while(loginResult):
-                    offChainManager.isSCManagementDeployed(privateKey, addresses['shardAddresses'])
-                    print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Effettua il logout\n")
-                    loggedChoiche = input('>>> ')
-                    match loggedChoiche:
-                        case '1':
-                            print("Inserisci il contratto nella cartella user_sc_to_deploy del programma e fornisci il nome del file contenente lo smart contract da deployare.")
-                            contractFileName = input(">>> ")
-                            offChainManager.deploy(privateKey, contractFileName)
-                            print("Deploy effettuato")
-                            
-                        case '2':
-                            print("Seleziona il contratto al quale sei interessato, scegliendo fra i seguenti")
-                            contractsList = formatList(offChainManager.retrieveContracts())
-                            # da formattare meglio il print dei contratti
-                            print(contractsList)
-                            chosenContractAddress=input(">>> ") #tryexcept
-                            isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
-                            intChosenContractAddr = int(chosenContractAddress)
-                            if  isNumber and int(chosenContractAddress)<len(contractsList):
-                                shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[intChosenContractAddr])
-                                print("Seleziona una funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
-                                contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[intChosenContractAddr])
-                                # da formattare meglio il print delle funzioni del singolo contratto
-                                print(contractFunctions)
-                                # controllo che sia un numero
-                                chosenFunction = input(">>> ")
-                                intChosenFunction = int(chosenFunction)
-                                chosenFunctionTypeArgs = offChainManager.retrieveFunctionArgs(contractAbi, contractFunctions[intChosenFunction])
-                                print(f"La funzione scelta prende n.{len(chosenFunctionTypeArgs)} argomenti dei seguenti tipi: {chosenFunctionTypeArgs}\nInserisci il loro valore separato da ; (es. arg1;arg2;...)")
-                                chosenFunctionArgs = input(">>> ")
-                                # controllo pattern stringa chosenFunctionArgs
-                                chosenFunctionArgs = chosenFunctionArgs.split(";")
-                                offChainManager.runChosenFunction(privateKey, shardNumber, contractsList[intChosenContractAddr], contractAbi, contractFunctions[intChosenFunction], chosenFunctionArgs, chosenFunctionTypeArgs)
-                                print("Transazione effettuata")
-                            else:
-                                print("Inserisci un numero tra quelli elencati!")
-                            
-                        case '3':
-                            loggedUser.setPrivateKey(None)
-                            print("Logout effettuato")
-                            loginResult = False
-                        case default:
-                            print("Carattere errato")  
-
-
-
-                choiche = '1'
-
-            case '2':
-                print("Generazione della chiave privata...\n...")
-                print("\nUtente registrato!")
-            case '3':
-                x = False
-            case default:
-                print("Il carattere digitato non corrisponde ad alcuna funzionalità")
-
-            
-
+        print(f"Errore nel programma principale\n{e}" )
 
                 
+
+
+                    

@@ -9,7 +9,7 @@ pragma solidity >0.5.0;
             greeting = 'Hello';
         }
 
-        function setGreeting( string calldata setString, int x, uint32 y) public {
+        function setGreeting( string calldata setString, int x, uint32 y, address z) public {
             greeting = setString;
         }
 

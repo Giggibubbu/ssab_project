@@ -24,6 +24,7 @@ contract BlockchainLoadBalancing {
         string httpAddress;
         uint256 bchNumber;
         address[] contractsArray;
+        string[]contractsArrayName;
         mapping(address => SmartContract) smartContracts;
     }
 
@@ -92,6 +93,7 @@ contract BlockchainLoadBalancing {
         blockchain[targetShardForDeploy].smartContracts[contractAddress].contractBinary = contractBinary;
         blockchain[targetShardForDeploy].smartContracts[contractAddress].owner = msg.sender;
         blockchain[targetShardForDeploy].contractsArray.push(contractAddress);
+        blockchain[targetShardForDeploy].contractsArrayName.push(contractName);
         contractToShard[contractAddress] = targetShardForDeploy;
         counterState = CounterInternalStates.CounterNotChanged;
         emit Deploy(contractAddress, targetShardForDeploy);  
@@ -116,6 +118,11 @@ contract BlockchainLoadBalancing {
     {
         return blockchain[shardNumber].contractsArray;
     }
+    function returnAllContractsName(uint256 shardNumber) public view returns (string[] memory)
+    {
+        return blockchain[shardNumber].contractsArrayName;
+    }
+
 
 
 
