@@ -13,9 +13,8 @@ class OffchainManager:
     __contractManagementAddress = None
     __contractManagementAbi = None
     '''
-       Constructor.
-       It assigns the value passed to it to the class variables for managing web3 instances.
-       Then install the solidity compiler and set its version.
+       Il costruttore assegna i parametri in ingresso alla veriabili della classe corrente per la gestione delle istanze di web3.
+       Succcessivamente installa il compilatore di solidity ed imposta la sua versione
     '''
     def __init__(self, web3ManagementInstance, web3ShardsInstances):
         self.__web3ManagementInstance = web3ManagementInstance
@@ -69,8 +68,10 @@ class OffchainManager:
         except (exceptions.TransactionNotFound) as e:
             print(f"Transazione non trovata\n {e}")
 
-    ''' la funzione utilizza l'istanza della blockchain di management, recupera l'account dell'utente che effettua il deploy, 
-    viene chiamata la funzione whereToDeploy che restituisce il numero della shard su cui effettuare il deploy (RICOMMENTARE)'''
+    ''' le funzione richiama la funzione whereToDeploy dello sc di management che restituisce il numero della shard su cui effettuare il deploy
+    dello smart contract indicato dall'utente. Viene effettuato il deploy sulla shard identificata. Viene confermato il deploy, memorizzando le relative informazioni 
+    nello sc di management
+    '''
     def deploy(self, privateKey, contractFileName):
         try:
             scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
@@ -89,8 +90,8 @@ class OffchainManager:
             txUserSCReceipt = self.__web3ShardsInstances[targetShard].eth.wait_for_transaction_receipt(txUserSCHash)
             txConfirmDeploy = scManagement.functions.confirmDeploy(contractAddress=txUserSCReceipt.contractAddress, contractName=contractFileName.split(".")[0], contractBinary=f"{scAbiToDeploy}").transact()
             txReceiptConfirmDeploy = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txConfirmDeploy)
-        except Exception as e:
-            print(f"Errore nel deploy dello smartcontract\n{e}")
+        except (exceptions.TransactionNotFound) as e:
+            print(f"Transazione non trovata\n {e}")
 
 
     '''la funzione, a partire dallo smart contract di management, utilizza le istanze delle 
@@ -133,7 +134,8 @@ class OffchainManager:
         for function in chosenContract.all_functions():
             contractFunctions.append(function.fn_name)
         return contractFunctions, jp
-    
+    ''' la funzione prende come argomenti l'abi e il nome della funzione scelta dall'utente, provvede a restituire una lista
+    dei tipi degli argomenti richiesti dalla funzione stessa'''
     def retrieveFunctionArgs(self, chosenContractAbi, chosenFunction):
         chosenFunctionArgs = []
         for dictionary in chosenContractAbi:
@@ -143,79 +145,67 @@ class OffchainManager:
                        chosenFunctionArgs.append(args['type'])
         return chosenFunctionArgs   
 
-
+    '''la funzione verifica che la funzione selezionata dall'utente modifichi o meno lo stato dello smart contract e, sulla base di ciò, esegue 
+    rispettivamente una transact o una call '''
 
     def runChosenFunction(self, userPKey, shardNumber, chosenContractAddress, chosenContractAbi, chosenFunction, chosenFunctionArgs, chosenFunctionTypeArgs):
-        # controllo tipi e argomenti inseriti dall'utente
-        c=0
-        if len(chosenFunctionArgs) > 0:
-            for argType in chosenFunctionTypeArgs:
-                chosenFunctionArgs[c] = self.convert(chosenFunctionArgs[c], argType)
-                c = c+1
-
-                
-
-        
-        chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=chosenContractAbi)
-        userAccount = Account.from_key(userPKey)
-        self.__web3ShardsInstances[shardNumber].eth.default_account=userAccount.address
-        # questo for è inutile
-        for function in chosenContract.all_functions():
-            if function.fn_name == chosenFunction:
-                for dictionary in chosenContractAbi:
-                    if 'name' in dictionary and dictionary['name'] == chosenFunction:
-                        if len(dictionary['inputs']) == 0:
-                            if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
-                                contract_func = chosenContract.functions[chosenFunction]
-                                return contract_func.__call__().call()
+        try:
+            c=0
+            if len(chosenFunctionArgs) > 0:
+                for argType in chosenFunctionTypeArgs:
+                    chosenFunctionArgs[c] = self.convert(chosenFunctionArgs[c], argType)
+                    c = c+1
+            chosenContract = self.__web3ShardsInstances[shardNumber].eth.contract(address=chosenContractAddress, abi=chosenContractAbi)
+            userAccount = Account.from_key(userPKey)
+            self.__web3ShardsInstances[shardNumber].eth.default_account=userAccount.address
+            for function in chosenContract.all_functions():
+                if function.fn_name == chosenFunction:
+                    for dictionary in chosenContractAbi:
+                        if 'name' in dictionary and dictionary['name'] == chosenFunction:
+                            if len(dictionary['inputs']) == 0:
+                                if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
+                                    contract_func = chosenContract.functions[chosenFunction]
+                                    return contract_func.__call__().call()
+                                else:
+                                    contract_func = chosenContract.functions[chosenFunction]
+                                    txHash = contract_func.__call__().transact()
+                                    txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
+                                    return ""
                             else:
-                                contract_func = chosenContract.functions[chosenFunction]
-                                txHash = contract_func.__call__().transact()
-                                txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
-                                return ""
-                        else:
-                            if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
-                                contract_func = chosenContract.functions[chosenFunction]
-                                return contract_func.__call__(*chosenFunctionArgs).call()
-                            else:
-                                contract_func = chosenContract.functions[chosenFunction]
-                                txHash = contract_func.__call__(*chosenFunctionArgs).transact()
-                                txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
-                                return ""
-                            
+                                if dictionary['stateMutability'] == 'view' or dictionary['stateMutability'] == 'pure':
+                                    contract_func = chosenContract.functions[chosenFunction]
+                                    return contract_func.__call__(*chosenFunctionArgs).call()
+                                else:
+                                    contract_func = chosenContract.functions[chosenFunction]
+                                    txHash = contract_func.__call__(*chosenFunctionArgs).transact()
+                                    txReceipt = self.__web3ShardsInstances[shardNumber].eth.wait_for_transaction_receipt(txHash)
+                                    return ""
+            print("Transazione effettuata")
+        except ValueError as e:
+            print(f"inserire argomenti del tipo richiesto\n{e}")
+        except RuntimeError as e:
+            print(f"Errore nel richiamo del metodo sullo smart contract")
+        except (exceptions.TransactionNotFound) as e:
+            print(f"Transazione non trovata\n {e}")
+
+    ''' la funzione converte i nomi dei tipi in solidity nei rispettivi nomi di tipi in python, effettua la rispettiva conversione'''                       
     def convert(self, value, type_):
-        # Check if it's a builtin type
-        if(type_== "string"):
-            type_ = "str"
-        elif(type_== "address"):
-            type_ = "str"
-        elif( re.search("^int[0-9]{1,3}$", type_)):
-            type_ = "int"
-        elif( re.search("^uint[0-9]{1,3}$", type_)):
-            type_ = "int"
+        try:
+            if(type_== "string"):
+                type_ = "str"
+            elif(type_== "address"):
+                type_ = "str"
+            elif( re.search("^int[0-9]{1,3}$", type_)):
+                type_ = "int"
+            elif( re.search("^uint[0-9]{1,3}$", type_)):
+                type_ = "int"
 
-        module = importlib.import_module('builtins')
-        if not re.search("\[\]$", type_):
+            module = importlib.import_module('builtins')
             cls = getattr(module, type_)
             return cls(value)
-        else:
-            array = []
-            if(re.search("^string\[\]$", type_)):
-                for element in value:
-                    array.append(str(element))
-            elif(re.search("^address\[\]$", type_)):
-                for element in value:
-                    array.append(str(element))
-            elif(re.search("^uint[0-9]{1,3}\[\]$", type_)):
-                for element in value:
-                    array.append(int(element))
-            elif( re.search("^int[0-9]{1,3}\[\]$", type_)):
-                for element in value:
-                    array.append(int(element))
-            elif(re.search("^bool\[\]$", type_)):
-                for element in value:
-                    array.append(bool(element))
-            return array
+        except Exception as e:
+            raise ValueError
+       
 
 
 

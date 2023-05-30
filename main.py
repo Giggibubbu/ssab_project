@@ -111,30 +111,34 @@ if __name__ == '__main__':
                                 for c in contractsList[1]:
                                     print(f"{j}: {c}")
                                     j=j+1
-                                chosenContractAddress=input(">>> ") #tryexcept
+                                chosenContractAddress=input(">>> ") 
                                 isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
-                                intChosenContractAddr = int(chosenContractAddress)
+                                
                                 if  isNumber and int(chosenContractAddress)<len(contractsList[0]):
-                                    shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[0][intChosenContractAddr])
+                                    shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[0][int(chosenContractAddress)])
                                     print("Seleziona una funzione relativa al contratto selezionato, scegliendo fra le seguenti:")
-                                    contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[0][intChosenContractAddr])
+                                    contractFunctions, contractAbi=offChainManager.retrieveFunctions(shardNumber, userChosenContract, contractsList[0][int(chosenContractAddress)])
                                     y=0
                                     for c in contractFunctions:
                                         print(f"{y}: {c}")
                                         y=y+1
-                                    # controllo che sia un numero
+
                                     chosenFunction = input(">>> ")
-                                    intChosenFunction = int(chosenFunction)
-                                    chosenFunctionTypeArgs = offChainManager.retrieveFunctionArgs(contractAbi, contractFunctions[intChosenFunction])
-                                    if (len(chosenFunctionTypeArgs)!=0):
-                                        print(f"La funzione scelta prende n.{len(chosenFunctionTypeArgs)} argomenti dei seguenti tipi: {chosenFunctionTypeArgs}\nInserisci il loro valore separato da ; (es. arg1;arg2;...)")
-                                        chosenFunctionArgs = input(">>> ")
-                                        chosenFunctionArgs = chosenFunctionArgs.split(";")
+                                    intChosenFunction = re.match("^[0-9][0-9]*$", chosenFunction)
+                                    if intChosenFunction and int(chosenFunction)<len(contractFunctions):
+        
+                                        chosenFunctionTypeArgs = offChainManager.retrieveFunctionArgs(contractAbi, contractFunctions[int(chosenFunction)])
+                                        if (len(chosenFunctionTypeArgs)!=0):
+                                            print(f"La funzione scelta prende n.{len(chosenFunctionTypeArgs)} argomenti dei seguenti tipi: {chosenFunctionTypeArgs}\nInserisci il loro valore separato da ; (es. arg1;arg2;...)")
+                                            chosenFunctionArgs = input(">>> ")
+                                            chosenFunctionArgs = chosenFunctionArgs.split(";")
+                                        else:
+                                            chosenFunctionArgs=[]
+                                        
+                                        print(offChainManager.runChosenFunction(privateKey, shardNumber, contractsList[0][int(chosenContractAddress)], contractAbi, contractFunctions[int(chosenFunction)], chosenFunctionArgs, chosenFunctionTypeArgs))
+                                     
                                     else:
-                                        chosenFunctionArgs=[]
-                                    # controllo pattern stringa chosenFunctionArgs
-                                    print(offChainManager.runChosenFunction(privateKey, shardNumber, contractsList[0][intChosenContractAddr], contractAbi, contractFunctions[intChosenFunction], chosenFunctionArgs, chosenFunctionTypeArgs))
-                                    print("Transazione effettuata")
+                                        print("inserisci un numero fra quelli indicati")
                                 else:
                                     print("Inserisci un numero tra quelli elencati!")
                                 
