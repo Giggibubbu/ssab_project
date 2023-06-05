@@ -38,7 +38,7 @@ contract BlockchainLoadBalancing {
         uint256 whereToDeploy
     );
 
-    // Initializes Shards and internal variables
+    // Inizializza la struttura rappresentante le Shards e le variabili interne dello smart contract
     constructor(uint256 shardCount, string[] memory httpAddress)
     {
         require(shardCount == httpAddress.length,
@@ -56,14 +56,15 @@ contract BlockchainLoadBalancing {
         }
     }
 
-    /*  Communicates to OffchainManager the index of the shard where
-        the deploy has to be executed.
-        
-        Ex. If there are four shard, the first deploy will be executed on shard n. 0.
-        Then, 1, 2, 3. When the counter is equal to four, it will be resetted to 0.
+    /*  
+        Comunica all'OffchainManager l'indice della shard sulla quale deve essere eseguito il deploy.
 
-        If there's no confirmDeploy after the previous execution of whereToDeploy,
-        reverts changes of the counter.
+        Es. Se ci sono quattro shard, il primo deploy verrà eseguito sulla shard n.0.
+        Successivamente, 1, 2 e 3. Quando il counter è uguale a 4, sarà resettato a 0.
+
+        Se non c'è conferma di avvenuto deploy dopo la precedente esecuzione di whereToDeploy,
+        riporta il counter allo stato precedente.
+
     */
     function whereToDeploy() public
     {
@@ -83,9 +84,10 @@ contract BlockchainLoadBalancing {
         emit ShardState(msg.sender, targetShardForDeploy);
     }
 
-    /* Called after the successful deploy by the OffchainManager.
-       Writes smart contract data inside the corresponding target shard struct of
-       the OnChainManager.
+    /* 
+       Scrive i dati dello smart contract all'interno della struttura della shard su cui era previsto
+       che il deploy dovesse avvenire, in seguito alla conferma di operazione avvenuta con
+       successo da parte dell'OffchainManager. 
     */
     function confirmDeploy(address contractAddress, string calldata contractName, string calldata contractBinary) public
     {
@@ -99,7 +101,8 @@ contract BlockchainLoadBalancing {
         emit Deploy(contractAddress, targetShardForDeploy);  
     }
 
-    /* Resets counter when whereToDeploy was called but no confirmDeploy were executed. */
+    /* Se è stato precedentemente chiamato il metodo whereToDeploy ma il deploy non è stato confermato
+       allora la funzione si occupa di resettare lo stato del counter delle Shards */
     function revertCounterChanges() private 
     {
         if(counterState != CounterInternalStates.CounterNotChanged)
@@ -108,16 +111,20 @@ contract BlockchainLoadBalancing {
         }
     }
 
-    // Returns  the shard where the contract with is deployed
+    /* Ritorna la shard su cui il contratto avente l'address passatogli come argomento 
+       è deployato. Inoltre ritorna anche la struct corrispondente all'indirizzo del
+       contratto passato come argomento. */
+
     function whereIsContractDeployed(address contractAddress) public view returns (uint256, SmartContract memory)
     {
         return (contractToShard[contractAddress], blockchain[contractToShard[contractAddress]].smartContracts[contractAddress]);
     }
-
+    /* Ritorna un array di indirizzi di tutti contratti contenuti nella shard il cui indice è passato alla funzione come argomento. */
     function returnAllContracts(uint256 shardNumber) public view returns (address[] memory)
     {
         return blockchain[shardNumber].contractsArray;
     }
+    /* Ritorna un array di stringhe contenente i nomi degli smart contract contenuti nella shard il cui indice è passato alla funzione come argomento.*/
     function returnAllContractsName(uint256 shardNumber) public view returns (string[] memory)
     {
         return blockchain[shardNumber].contractsArrayName;
