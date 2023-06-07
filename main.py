@@ -95,7 +95,7 @@ if __name__ == '__main__':
                     loginResult = loggedUser.verifyPrivateKey()
                     while(loginResult):
                         offChainManager.isSCManagementDeployed(privateKey, addresses['shardAddresses'])
-                        print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Effettua il logout\n")
+                        print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il deploy\n2. Effettua una transazione\n3. Elimina smart contract\n4. Effettua il logout")
                         loggedChoiche = input('>>> ')
                         match loggedChoiche:
                             case '1':
@@ -141,8 +141,25 @@ if __name__ == '__main__':
                                         print("inserisci un numero fra quelli indicati")
                                 else:
                                     print("Inserisci un numero tra quelli elencati!")
-                                
                             case '3':
+                                print("Seleziona il contratto che vuoi eliminare, scegliendo fra i seguenti")
+                                contractsList = formatList(offChainManager.retrieveContracts())
+                                print(contractsList)
+                                j=0
+                                for c in contractsList[1]:
+                                    print(f"{j}: {c}")
+                                    j=j+1
+                                chosenContractAddress=input(">>> ") 
+                                isNumber = re.match("^[0-9][0-9]*$", chosenContractAddress)
+                                if  isNumber and int(chosenContractAddress)<len(contractsList[0]):
+                                    shardNumber, userChosenContract = offChainManager.retrieveContract(contractsList[0][int(chosenContractAddress)])
+                                    offChainManager.deleteContract(shardNumber, contractsList[0][int(chosenContractAddress)])
+                                
+                                else:
+                                    print("Inserisci un numero tra quelli elencati!")
+
+
+                            case '4':
                                 loggedUser.setPrivateKey(None)
                                 print("Logout effettuato")
                                 loginResult = False
@@ -161,7 +178,8 @@ if __name__ == '__main__':
                 case default:
                     print("Il carattere digitato non corrisponde ad alcuna funzionalità")
     except Exception as e:
-        print(f"Errore nel programma principale\n{e}" )
+        print(f"Errore nel programma principale\n{e}")
+    
 
                 
 

@@ -205,6 +205,15 @@ class OffchainManager:
             return cls(value)
         except Exception as e:
             raise ValueError
+    
+    def deleteContract(self, shardNumber, contractAddressToDelete):
+        try:
+            scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
+            txHash = scManagement.functions.deleteContract(shardNumber, contractAddressToDelete).transact()
+            txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
+        except RuntimeError as e:
+            print(e)
+
        
 
 

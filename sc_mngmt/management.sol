@@ -24,7 +24,7 @@ contract BlockchainLoadBalancing {
         string httpAddress;
         uint256 bchNumber;
         address[] contractsArray;
-        string[]contractsArrayName;
+        string[] contractsArrayName;
         mapping(address => SmartContract) smartContracts;
     }
 
@@ -128,6 +128,22 @@ contract BlockchainLoadBalancing {
     function returnAllContractsName(uint256 shardNumber) public view returns (string[] memory)
     {
         return blockchain[shardNumber].contractsArrayName;
+    }
+    function deleteContract(uint256 shardNumber, address contractAddress) public
+    {
+        delete(blockchain[shardNumber].smartContracts[contractAddress]);
+        uint256 length = blockchain[shardNumber].contractsArray.length;
+        for(uint256 i=0; i<blockchain[shardNumber].contractsArray.length; i++)
+        {
+            if(blockchain[shardNumber].contractsArray[i] == contractAddress)
+            {
+                blockchain[shardNumber].contractsArray[i] = blockchain[shardNumber].contractsArray[length-1];
+                blockchain[shardNumber].contractsArrayName[i] = blockchain[shardNumber].contractsArrayName[length-1];
+                blockchain[shardNumber].contractsArray.pop();
+                blockchain[shardNumber].contractsArrayName.pop();
+
+            }
+        }
     }
 
 
