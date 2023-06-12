@@ -115,9 +115,9 @@ contract BlockchainLoadBalancing {
        è deployato. Inoltre ritorna anche la struct corrispondente all'indirizzo del
        contratto passato come argomento. */
 
-    function whereIsContractDeployed(address contractAddress) public view returns (uint256, SmartContract memory)
+    function whereIsContractDeployed(address contractAddress, uint256 contractShard) public view returns (uint256, SmartContract memory)
     {
-        return (contractToShard[contractAddress], blockchain[contractToShard[contractAddress]].smartContracts[contractAddress]);
+        return (contractShard, blockchain[contractShard].smartContracts[contractAddress]);
     }
     /* Ritorna un array di indirizzi di tutti contratti contenuti nella shard il cui indice è passato alla funzione come argomento. */
     function returnAllContracts(uint256 shardNumber) public view returns (address[] memory)
@@ -131,7 +131,6 @@ contract BlockchainLoadBalancing {
     }
     function deleteContract(uint256 shardNumber, address contractAddress) public
     {
-        delete(blockchain[shardNumber].smartContracts[contractAddress]);
         uint256 length = blockchain[shardNumber].contractsArray.length;
         for(uint256 i=0; i<blockchain[shardNumber].contractsArray.length; i++)
         {
@@ -141,7 +140,7 @@ contract BlockchainLoadBalancing {
                 blockchain[shardNumber].contractsArrayName[i] = blockchain[shardNumber].contractsArrayName[length-1];
                 blockchain[shardNumber].contractsArray.pop();
                 blockchain[shardNumber].contractsArrayName.pop();
-
+                delete(blockchain[shardNumber].smartContracts[contractAddress]);
             }
         }
     }

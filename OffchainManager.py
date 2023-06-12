@@ -100,25 +100,29 @@ class OffchainManager:
         try:
             c=0
             j=0
+            contractToShard = []
             allContracts=[]
             allContractsName=[]
             scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
             for shard in self.__web3ShardsInstances:
                 allContracts.append(scManagement.functions.returnAllContracts(c).call())
+                for x in range(len(allContracts[c])):
+                    contractToShard.append(c)
                 c=c+1
+
             for shard in self.__web3ShardsInstances:
                 allContractsName.append(scManagement.functions.returnAllContractsName(j).call())
                 j=j+1
-            return allContracts, allContractsName
+            return allContracts, allContractsName, contractToShard
         except RuntimeError as e:
             print(f"Errore nel richiamo del metodo sullo smart contract\n{e}")
 
     '''la funzione, a partire dall'indirizzo dello smart contract fornito come argomento,
      restituisce il numero della shard su cui è stato fatto il deploy e l'abi del relativo contratto '''
-    def retrieveContract(self, address):
+    def retrieveContract(self, address, contractToShard):
         try:
             scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
-            shNumberAndContract = scManagement.functions.whereIsContractDeployed(address).call()
+            shNumberAndContract = scManagement.functions.whereIsContractDeployed(address, contractToShard).call()
             return shNumberAndContract[0], shNumberAndContract[1]
         except RuntimeError as e:
             print(f"Errore nel richiamo del metodo sullo smart contract\n{e}")
@@ -206,14 +210,21 @@ class OffchainManager:
         except Exception as e:
             raise ValueError
     
-    def deleteContract(self, shardNumber, contractAddressToDelete):
+    def deleteContract(self, userPKey, shardNumber, contractAddressToDelete):
         try:
             scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
+            userAccount = Account.from_key(userPKey)
+            self.__web3ManagementInstance.eth.default_account=userAccount.address
             txHash = scManagement.functions.deleteContract(shardNumber, contractAddressToDelete).transact()
             txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
+            scManagement.functions.returnAllContracts(shardNumber).call()
         except RuntimeError as e:
             print(e)
-
+    def tryprint(self, userPKey, shardNumber):
+        scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
+        userAccount = Account.from_key(userPKey)
+        self.__web3ManagementInstance.eth.default_account=userAccount.address
+        return scManagement.functions.returnAllContracts(shardNumber).call()
        
 
 
