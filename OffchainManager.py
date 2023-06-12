@@ -220,11 +220,7 @@ class OffchainManager:
             scManagement.functions.returnAllContracts(shardNumber).call()
         except RuntimeError as e:
             print(e)
-    def tryprint(self, userPKey, shardNumber):
-        scManagement = self.__web3ManagementInstance.eth.contract(address=self.__contractManagementAddress, abi=self.__contractManagementAbi)
-        userAccount = Account.from_key(userPKey)
-        self.__web3ManagementInstance.eth.default_account=userAccount.address
-        return scManagement.functions.returnAllContracts(shardNumber).call()
+
        
 
 
