@@ -1,6 +1,6 @@
 from web3 import exceptions
 import solcx
-from web3 import Account
+from web3 import Account, Web3
 import jsonpickle
 import importlib
 import re
@@ -38,6 +38,7 @@ class OffchainManager:
             self.__contractManagementAbi, bytecode = self.__compileScManagement("sc_mngmt/management.sol")
         except (exceptions.BlockNotFound) as e:
             self.__deployScManagement(userPrivateKey, addresses)
+
     
     '''la funzione effettua la compilazione dello sc in oggetto e ritorna abi e bytecode'''
     def __compileScManagement(self, contractDirAndName):
@@ -65,6 +66,18 @@ class OffchainManager:
             txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
             self.__contractManagementAbi = abi
             self.__contractManagementAddress = txReceipt['contractAddress']
+
+            allAccounts = self.__web3ManagementInstance.eth.accounts
+            print(allAccounts)
+            depContract = self.__web3ManagementInstance.eth.contract(abi=self.__contractManagementAbi, address=self.__contractManagementAddress)
+            txHash = depContract.functions.generateAccountArray(len(allAccounts)).transact()
+            txReceipt = self.__web3ManagementInstance.eth.wait_for_transaction_receipt(txHash)
+            c=0
+            for address in self.__web3ManagementInstance.eth.accounts:
+                if(address == userAccount.address):
+                    txHash = depContract.functions.markWalletAsUsed(c).transact()
+                c=c+1
+
         except (exceptions.TransactionNotFound) as e:
             print(f"Transazione non trovata\n {e}")
 
@@ -220,6 +233,10 @@ class OffchainManager:
             scManagement.functions.returnAllContracts(shardNumber).call()
         except RuntimeError as e:
             print(e)
+
+    
+
+
 
        
 

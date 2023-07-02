@@ -85,7 +85,7 @@ if __name__ == '__main__':
         x = True
         while True and x:
 
-            print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Effettua la registrazione\n3. Termina l'esecuzione.")
+            print("Puoi effettuare il deploy di uno smart contract o eseguire una transazione\nDi seguito le scelte:\n1. Effettua il login\n2. Termina l'esecuzione.")
             choiche = input(">>> ")   
 
 
@@ -179,15 +179,7 @@ if __name__ == '__main__':
                                 loginResult = False
                             case default:
                                 print("Carattere errato")  
-
-
-
-                    choiche = '1'
-
                 case '2':
-                    print("Generazione della chiave privata...\n...")
-                    print("\nUtente registrato!")
-                case '3':
                     x = False
                 case default:
                     print("Il carattere digitato non corrisponde ad alcuna funzionalità")

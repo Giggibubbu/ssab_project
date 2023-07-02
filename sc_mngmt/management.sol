@@ -7,12 +7,13 @@ contract BlockchainLoadBalancing {
     uint256 internal maxDeployedContracts;
     uint256 internal counter;
     uint256 internal targetShardForDeploy;
+    address adminOwner;
     mapping(address => uint256) contractToShard;
 
     Shard[] blockchain;
     enum CounterInternalStates {CounterChanged, CounterNotChanged}
     CounterInternalStates internal counterState;
-    
+
     struct SmartContract
     {
         string contractName;
@@ -38,6 +39,8 @@ contract BlockchainLoadBalancing {
         uint256 whereToDeploy
     );
 
+
+
     // Inizializza la struttura rappresentante le Shards e le variabili interne dello smart contract
     constructor(uint256 shardCount, string[] memory httpAddress)
     {
@@ -54,6 +57,7 @@ contract BlockchainLoadBalancing {
             blockchain[i].httpAddress = httpAddress[i];
             blockchain[i].bchNumber = i;
         }
+        adminOwner = msg.sender;
     }
 
     /*  
