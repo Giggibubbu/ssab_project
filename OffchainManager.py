@@ -51,7 +51,7 @@ class OffchainManager:
             bytecode = contract_interface['bin']
             return abi, bytecode
         except IOError as e:
-            print("errore nella lettura del file che contiene lo smart contract di management")
+            print("Errore nella lettura del file che contiene lo smart contract di management.")
 
     
     '''la funzione effettua il deploy dello sc di management con la chiave privata fornita come argomento,

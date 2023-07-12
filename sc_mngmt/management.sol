@@ -7,7 +7,6 @@ contract BlockchainLoadBalancing {
     uint256 internal maxDeployedContracts;
     uint256 internal counter;
     uint256 internal targetShardForDeploy;
-    address adminOwner;
     mapping(address => uint256) contractToShard;
 
     Shard[] blockchain;
@@ -57,7 +56,6 @@ contract BlockchainLoadBalancing {
             blockchain[i].httpAddress = httpAddress[i];
             blockchain[i].bchNumber = i;
         }
-        adminOwner = msg.sender;
     }
 
     /*  
@@ -133,6 +131,8 @@ contract BlockchainLoadBalancing {
     {
         return blockchain[shardNumber].contractsArrayName;
     }
+    /* Cancella lo smart contract corrispondente all'address passato in argomento alla funzione dalla shard numero shardNumber anch'esso passato come
+    argomento. Cancella quindi il contratto dalle strutture dello smart contract di management corrispondenti alla shard numero shardNumber. */
     function deleteContract(uint256 shardNumber, address contractAddress) public
     {
         uint256 length = blockchain[shardNumber].contractsArray.length;

@@ -33,18 +33,18 @@ def readBchSettingsFromFile():
                 confData[splittedLine[0]] = splittedLine[1]
         confData['shardAddresses'] = confData['shardAddresses'].split(';')
         if not verifyAddress(confData['managementAddress']):
-            raise Exception("Management address not valid.")
+            raise Exception("Indirizzo della blockchain di management non valido.")
         if len(confData['shardAddresses']) <2:
-            raise Exception("You have to set up at least two shards")
+            raise Exception("Il sistema non può essere configurato con meno di due shard.")
         for ad in confData['shardAddresses']:
             if not verifyAddress(ad):
-                raise Exception("Shard address not valid.")
+                raise Exception("Indirizzi delle shard non validi.")
         confFile.close()
         return confData
     except IOError as e:
         print("Errore nella lettura del file conf.ini")
     except Exception as e:
-        print("Errore nella lettura del file con.ini")
+        print("Errore nella lettura del file conf.ini")
 
 '''la funzione prende in ingresso listsContracts, che a sua volta contiene altre due liste, crea due liste: 
 una contente gli indirizzi e una i nomi delle funzioni'''
