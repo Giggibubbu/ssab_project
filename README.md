@@ -33,7 +33,8 @@ pip install package_name
 * Installare Ganache e configurare un numero a piacimento di blockchain, considerando che una sarà quella dedicata al Management.
 
 * Configurare il file conf.ini sostituendo i link di default dei parametri managementAddress e shardAddresses con gli indirizzi http della propria blockchain di Management e delle proprie Shard.
-Di seguito verrà illustrata la posizione dei detti parametri nel file tramite la loro delimitazione tra frecce (-----> <-----)
+Di seguito verrà illustrata la posizione dei detti parametri nel file tramite la loro delimitazione tra frecce (-----> <-----).
+Mantenere separati i link dal carattere ';' come nel seguente esempio.
 
 ```
 # Blockchain system configuration #
